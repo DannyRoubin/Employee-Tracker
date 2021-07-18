@@ -43,35 +43,71 @@ const startTask = () => {
     .then((answer) => {
       switch (answer.action) {
         case "View All Employees":
-          artistSearch();
+          ViewAllEmployees();
           break;
 
         case "View All Employees By Department":
-          multiSearch();
+          ViewAllEmployeesByDepartment();
           break;
 
         case "View All Employees By Manager":
-          rangeSearch();
+          ViewAllEmployeesByManager();
           break;
 
         case "Add Employee":
-          songSearch();
+          AddEmployee();
           break;
 
         case "Remove Employee":
-          songSearch();
+          RemoveEmployee();
           break;
 
         case "Update Employee":
-          songSearch();
+          UpdateEmployee();
           break;
 
         case "Update Employee Role":
-          songSearch();
+          UpdateEmployeeRole();
           break;
 
         case "Update Employee Manager":
-          songSearch();
+          UpdateEmployeeManager();
+          break;
+
+        case "View All Roles":
+          ViewAllRoles();
+          break;
+
+        case "Add Role":
+          AddRole();
+          break;
+
+        case "Remove Role":
+          RemoveRole();
+          break;
+
+        case "View All Departments":
+          ViewAllDepartments();
+          break;
+
+        case "Add Department":
+          AddDepartment();
+          break;
+
+        case "Remove Department":
+          RemoveDepartment();
+          break;
+
+        case "View Total Budget By Department":
+          ViewTotalBudgetByDepartment();
+          break;
+
+        case "Exit":
+          connection.end();
+          break;
+
+        default:
+          console.log(`Invalid action: ${answer.action}`);
           break;
       }
     });
