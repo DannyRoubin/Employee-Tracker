@@ -4,7 +4,7 @@ require("dotenv").config();
 
 const dotenvConnection = mysql.createConnection({
   host: "localhost",
-  port: 3301,
+  port: 3306,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
@@ -103,7 +103,7 @@ const startTask = () => {
           break;
 
         case "Exit":
-          connection.end();
+          dotenvConnection.end();
           break;
 
         default:
@@ -111,4 +111,26 @@ const startTask = () => {
           break;
       }
     });
+};
+
+const ViewAllEmployees = () => {
+  const query =
+    "select " +
+    "employee.first_name, " +
+    "employee.last_name, " +
+    "role.title as `role`, " +
+    "role.salary, " +
+    "department.name as `department`, " +
+    "concat(manager.first_name, ' ', manager.last_name) as manager " +
+    "from employee as employee " +
+    // Had to use LEFT OUTER JOIN to also show employees with no managers ...
+    "left outer join employee as manager on employee.manager_id = manager.id " +
+    "inner join `role` AS role on employee.role_id = role.id " +
+    "inner join department as department on role.department_id = department.id " +
+    "order by employee.last_name, employee.first_name;";
+  dotenvConnection.query(query, (err, res) => {
+    if (err) throw err;
+    console.log(res);
+    startTask();
+  });
 };
