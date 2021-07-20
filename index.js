@@ -1,3 +1,4 @@
+const { query } = require("express");
 const inquirer = require("inquirer");
 const mysql = require("mysql");
 require("dotenv").config();
@@ -113,6 +114,7 @@ const startTask = () => {
     });
 };
 
+// function to view all of the employees
 const ViewAllEmployees = () => {
   const query =
     "select " +
@@ -123,11 +125,28 @@ const ViewAllEmployees = () => {
     "department.name as `department`, " +
     "concat(manager.first_name, ' ', manager.last_name) as manager " +
     "from employee as employee " +
-    // Had to use LEFT OUTER JOIN to also show employees with no managers ...
     "left outer join employee as manager on employee.manager_id = manager.id " +
     "inner join `role` AS role on employee.role_id = role.id " +
     "inner join department as department on role.department_id = department.id " +
     "order by employee.last_name, employee.first_name;";
+  dotenvConnection.query(query, (err, res) => {
+    if (err) throw err;
+    console.log(res);
+    startTask();
+  });
+};
+
+// function to view all employees in a department
+const ViewAllEmployeesByDepartment = () => {
+  const query =
+    "select " +
+    "department.name as `department`, employee.first_name, employee.last_name, " +
+    "role.title as `role` , role.salary, " +
+    "concat(manager.first_name, ' ', manager.last_name) as manager from employee as employee " +
+    "left outer join employee as manager on employee.manager_id = manager.id " +
+    "inner join `role` as role on employee.role_id = role.id " +
+    "inner join department as department on role.department_id = department.id " +
+    "order by `department`, employee.last_name, employee.first_name ";
   dotenvConnection.query(query, (err, res) => {
     if (err) throw err;
     console.log(res);

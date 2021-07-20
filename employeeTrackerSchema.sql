@@ -41,6 +41,9 @@ foreign key fkey_role (role_id) references `role`(id)
 -- creates a new dapartment titled software engineers
 insert into department (name)
 value ("Software Engineers");
+insert into department (name)
+value ("Legal");
+
 
 -- creating the following four roles
 insert into `role` (title, salary, department_id)
@@ -55,6 +58,10 @@ values ('project manager', 120000, 1);
 insert into `role` (title, salary, department_id)
 values ('front end designer', 88000, 1);
 
+insert into `role` (title, salary, department_id)
+values ('Lawyer', 13000, 2);
+
+
 -- creates new employees
 
 insert into employee (first_name, last_name, role_id, manager_id)
@@ -68,6 +75,12 @@ values ("Garrett", "Grant", 1, 1);
 
 insert into employee (first_name, last_name, role_id, manager_id)
 values ("Vincent", "Burns", 4, 1);
+
+insert into employee (first_name, last_name, role_id, manager_id)
+values ("James", "Keo", 5, 5);
+
+insert into employee (first_name, last_name, role_id, manager_id)
+values ("Halen", "Rankin", 5, 5);
 
  select 
    employee.*, 
