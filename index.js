@@ -442,3 +442,49 @@ const AddRole = () => {
       });
   });
 };
+
+const RemoveRole = () => {
+  const query = "select id, title from role";
+  dotenvConnection.query(query, (err, res) => {
+    if (err) throw err;
+    inquirer
+      .prompt([
+        {
+          name: "role",
+          type: "rawlist",
+          message: `What role do you want to remove? : `,
+          choices: res.map((role) => role.title),
+        },
+      ])
+      .then((answer) => {
+        const roleIdHolder = res.findIndex(
+          (role) => role.title === answer.role
+        );
+        const roleId = res[roleIdHolder].id;
+        RemoveRoleP2(roleId);
+      });
+  });
+};
+
+const RemoveRoleP2 = (roleId) => {
+  let query =
+    "select concat (`first_name`, ' ', `last_name`) as fullName from employee " +
+    "inner join `role` on employee.role_id = `role`.id " +
+    `where \`role\`.id = ${roleId}`;
+  dotenvConnection.query(query, (err, res) => {
+    if (err) throw err;
+    if (res.length > 0) {
+      console.log(
+        "You cannot remove this role because the following employees are still assigned to it:"
+      );
+      console.log(res);
+    } else {
+      query = `delete from \`role\` where id = ${roleId}`;
+      dotenvConnection.query(query, (err) => {
+        if (err) throw err;
+      });
+    }
+    console.log("role successfully removed");
+    startTask();
+  });
+};
