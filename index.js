@@ -2,6 +2,9 @@ const inquirer = require("inquirer");
 const mysql = require("mysql");
 require("dotenv").config();
 
+let roleArray = [];
+let departmentArray = [];
+
 const dotenvConnection = mysql.createConnection({
   host: "localhost",
   port: 3306,
@@ -169,5 +172,87 @@ const ViewAllEmployeesByManager = () => {
     console.log("Now viewing all employees by manager");
     console.log(res);
     startTask();
+  });
+};
+
+// function to add an employee
+const AddEmployee = () => {
+  let query = "select id, title from `role` ";
+  dotenvConnection.query(query, (err, roles) => {
+    if (err) throw err;
+    inquirer
+      .prompt([
+        {
+          name: "employeeFirstName",
+          type: "input",
+          message: "What is the first name of the employee?",
+        },
+        {
+          name: "employeeLastName",
+          type: "input",
+          message: "What is the last name of the employee?",
+        },
+        {
+          name: "employeeRole",
+          type: "rawlist",
+          message: "What is the role of the employee?",
+          choices: roles.map((role) => role.title),
+        },
+      ])
+      .then((answer) => {
+        console.log("stop1");
+        const roleId = roles.findIndex(
+          (role) => role.title === answer.employeeRole
+        );
+        console.log("stop2");
+        if (roleId < 0)
+          throw new Error(`No roles matched: "${answer.employeeRole}"`);
+        console.log("stop3");
+        const employeeRoleId = roles[roleId].id;
+        console.log("stop4");
+        AddEmployeeP2(
+          answer.employeeFirstName,
+          answer.employeeLastName,
+          employeeRoleId
+        );
+      });
+  });
+};
+
+const AddEmployeeP2 = (employeeFirstName, employeeLastName, employeeRoleId) => {
+  console.log("stop5");
+  let query =
+    "select id, concat(`first_name`, ' ' , `last_name`) as fullName from employee;";
+  console.log("stop6");
+  dotenvConnection.query(query, (err, managers) => {
+    console.log("stop7");
+    if (err) throw err;
+    console.log("stop8");
+    managers.unshift({ id: null, fullName: "none" });
+    console.log("stop9");
+    inquirer
+      .prompt([
+        {
+          name: "manager",
+          type: "rawlist",
+          message: `Who is the manager of this employee?`,
+          choices: managers.map((manager) => manager.fullName),
+        },
+      ])
+      .then((answer) => {
+        const roleId = managers.findIndex(
+          (manager) => manager.fullName === answer.manager
+        );
+        if (roleId < 0)
+          throw new Error(`no managers matched: "${answer.manager}"`);
+        const managerId = managers[roleId].id;
+        query =
+          `insert into employee (first_name, last_name, role_id, manager_id) ` +
+          `values ("${employeeFirstName}", "${employeeLastName}", ${employeeRoleId}, ${managerId})`;
+        dotenvConnection.query(query, (err) => {
+          if (err) throw err;
+          startTask();
+        });
+      });
   });
 };
