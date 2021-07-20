@@ -409,3 +409,14 @@ const UpdateEmployeeManagerP2 = (employeeId) => {
       });
   });
 };
+
+const ViewAllRoles = () => {
+  const query =
+    "select title, salary, department_id from `role` " +
+    "inner join department on role.department_id = department.id order by `title` ";
+  dotenvConnection.query(query, (err, res) => {
+    if (err) throw err;
+    console.log(res);
+    startTask();
+  });
+};
