@@ -200,16 +200,12 @@ const AddEmployee = () => {
         },
       ])
       .then((answer) => {
-        console.log("stop1");
         const roleId = roles.findIndex(
           (role) => role.title === answer.employeeRole
         );
-        console.log("stop2");
         if (roleId < 0)
           throw new Error(`No roles matched: "${answer.employeeRole}"`);
-        console.log("stop3");
         const employeeRoleId = roles[roleId].id;
-        console.log("stop4");
         AddEmployeeP2(
           answer.employeeFirstName,
           answer.employeeLastName,
@@ -220,16 +216,11 @@ const AddEmployee = () => {
 };
 
 const AddEmployeeP2 = (employeeFirstName, employeeLastName, employeeRoleId) => {
-  console.log("stop5");
   let query =
     "select id, concat(`first_name`, ' ' , `last_name`) as fullName from employee;";
-  console.log("stop6");
   dotenvConnection.query(query, (err, managers) => {
-    console.log("stop7");
     if (err) throw err;
-    console.log("stop8");
     managers.unshift({ id: null, fullName: "none" });
-    console.log("stop9");
     inquirer
       .prompt([
         {
@@ -254,5 +245,54 @@ const AddEmployeeP2 = (employeeFirstName, employeeLastName, employeeRoleId) => {
           startTask();
         });
       });
+  });
+};
+
+// function to remove an employee
+const RemoveEmployee = () => {
+  const query =
+    "select id, concat(`first_name`, ' ', `last_name`) as fullName from employee;";
+  dotenvConnection.query(query, (err, employees) => {
+    if (err) throw err;
+    inquirer
+      .prompt([
+        {
+          name: "employee",
+          type: "rawlist",
+          message: `Select which employee to remove: `,
+          choices: employees.map((employee) => employee.fullName),
+        },
+      ])
+      .then((choice) => {
+        const index = employees.findIndex(
+          (employee) => employee.fullName === choice.employee
+        );
+        if (index < 0) throw new Error(`no employees found matching the input`);
+        const employeeId = employees[index].id;
+        const employeeFullName = employees[index].fullName;
+        RemoveEmployeeP2(employeeId, employeeFullName);
+      });
+  });
+};
+
+const RemoveEmployeeP2 = (employeeId, employeeFullName) => {
+  let query =
+    "select concat(`first_name`, ' ', `last_name`) as fullName " +
+    "from employee " +
+    `where manager_id = ${employeeId}`;
+  dotenvConnection.query(query, (err, res) => {
+    if (err) throw err;
+    if (res.length > 0) {
+      console.log(
+        `cannot remove "${employeeFullName}" because they are the manager of the following employees: `
+      );
+      console.log(res);
+    } else {
+      query = `delete from employee where id = ${employeeId}`;
+      dotenvConnection.query(query, (err) => {
+        if (err) throw err;
+      });
+    }
+    startTask();
   });
 };
