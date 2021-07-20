@@ -488,3 +488,12 @@ const RemoveRoleP2 = (roleId) => {
     startTask();
   });
 };
+
+const ViewAllDepartments = () => {
+  const query = `select name from department order BY name`;
+  dotenvConnection.query(query, (err, res) => {
+    if (err) throw err;
+    console.log(res);
+    startTask();
+  });
+};
