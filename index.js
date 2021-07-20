@@ -30,7 +30,6 @@ const startTask = () => {
         "View All Employees By Manager",
         "Add Employee",
         "Remove Employee",
-        "Update Employee",
         "Update Employee Role",
         "Update Employee Manager",
         "View All Roles",
@@ -63,10 +62,6 @@ const startTask = () => {
 
         case "Remove Employee":
           RemoveEmployee();
-          break;
-
-        case "Update Employee":
-          UpdateEmployee();
           break;
 
         case "Update Employee Role":
@@ -178,7 +173,7 @@ const ViewAllEmployeesByManager = () => {
 // function to add an employee
 const AddEmployee = () => {
   let query = "select id, title from `role` ";
-  dotenvConnection.query(query, (err, roles) => {
+  dotenvConnection.query(query, (err, res) => {
     if (err) throw err;
     inquirer
       .prompt([
@@ -196,16 +191,16 @@ const AddEmployee = () => {
           name: "employeeRole",
           type: "rawlist",
           message: "What is the role of the employee?",
-          choices: roles.map((role) => role.title),
+          choices: res.map((role) => role.title),
         },
       ])
       .then((answer) => {
-        const roleId = roles.findIndex(
+        const roleId = res.findIndex(
           (role) => role.title === answer.employeeRole
         );
         if (roleId < 0)
           throw new Error(`No roles matched: "${answer.employeeRole}"`);
-        const employeeRoleId = roles[roleId].id;
+        const employeeRoleId = res[roleId].id;
         AddEmployeeP2(
           answer.employeeFirstName,
           answer.employeeLastName,
@@ -242,6 +237,7 @@ const AddEmployeeP2 = (employeeFirstName, employeeLastName, employeeRoleId) => {
           `values ("${employeeFirstName}", "${employeeLastName}", ${employeeRoleId}, ${managerId})`;
         dotenvConnection.query(query, (err) => {
           if (err) throw err;
+          console.log("employee now added");
           startTask();
         });
       });
@@ -252,7 +248,7 @@ const AddEmployeeP2 = (employeeFirstName, employeeLastName, employeeRoleId) => {
 const RemoveEmployee = () => {
   const query =
     "select id, concat(`first_name`, ' ', `last_name`) as fullName from employee;";
-  dotenvConnection.query(query, (err, employees) => {
+  dotenvConnection.query(query, (err, res) => {
     if (err) throw err;
     inquirer
       .prompt([
@@ -260,16 +256,16 @@ const RemoveEmployee = () => {
           name: "employee",
           type: "rawlist",
           message: `Select which employee to remove: `,
-          choices: employees.map((employee) => employee.fullName),
+          choices: res.map((employee) => employee.fullName),
         },
       ])
       .then((choice) => {
-        const index = employees.findIndex(
+        const empId = res.findIndex(
           (employee) => employee.fullName === choice.employee
         );
-        if (index < 0) throw new Error(`no employees found matching the input`);
-        const employeeId = employees[index].id;
-        const employeeFullName = employees[index].fullName;
+        if (empId < 0) throw new Error(`no employees found matching the input`);
+        const employeeId = res[empId].id;
+        const employeeFullName = res[empId].fullName;
         RemoveEmployeeP2(employeeId, employeeFullName);
       });
   });
@@ -293,6 +289,64 @@ const RemoveEmployeeP2 = (employeeId, employeeFullName) => {
         if (err) throw err;
       });
     }
+    console.log("Employee now removed");
     startTask();
+  });
+};
+
+// function to update an employee role
+const UpdateEmployeeRole = () => {
+  let query =
+    "select id, concat(`first_name`, ' ' , `last_name`) as fullName from employee";
+  dotenvConnection.query(query, (err, res) => {
+    if (err) throw err;
+    inquirer
+      .prompt([
+        {
+          name: "employee",
+          type: "rawlist",
+          message: `Which employee would you like to update? : `,
+          choices: res.map((employee) => employee.fullName),
+        },
+      ])
+      .then((answer) => {
+        const employeeIdHolder = res.findIndex(
+          (employee) => employee.fullName === answer.employee
+        );
+        if (employeeIdHolder < 0)
+          throw new Error("No employees matched your input");
+        const employeeId = res[employeeIdHolder].id;
+        UpdateEmployeeRoleP2(employeeId);
+      });
+  });
+};
+
+const UpdateEmployeeRoleP2 = (employeeId) => {
+  let query = "select id, title from `role` ";
+  dotenvConnection.query(query, (err, res) => {
+    if (err) throw err;
+    inquirer
+      .prompt([
+        {
+          name: "role",
+          type: "rawlist",
+          message: `What would you like the employee's new role to be? : `,
+          choices: res.map((role) => role.title),
+        },
+      ])
+      .then((answer) => {
+        const employeeRoleHolder = res.findIndex(
+          (role) => role.title === answer.role
+        );
+        if (employeeRoleHolder < 0)
+          throw new Error(" No roles matched your input");
+        const roleId = res[employeeRoleHolder].id;
+        query = `update employee set role_id = ${roleId} where id = ${employeeId}`;
+        dotenvConnection.query(query, (err) => {
+          if (err) throw err;
+          console.log("employee role successfully updated");
+          startTask();
+        });
+      });
   });
 };
