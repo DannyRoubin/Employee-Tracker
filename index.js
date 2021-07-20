@@ -1,4 +1,3 @@
-const { query } = require("express");
 const inquirer = require("inquirer");
 const mysql = require("mysql");
 require("dotenv").config();
@@ -128,15 +127,16 @@ const ViewAllEmployees = () => {
     "left outer join employee as manager on employee.manager_id = manager.id " +
     "inner join `role` AS role on employee.role_id = role.id " +
     "inner join department as department on role.department_id = department.id " +
-    "order by employee.last_name, employee.first_name;";
+    "order by employee.first_name, employee.last_name;";
   dotenvConnection.query(query, (err, res) => {
     if (err) throw err;
+    console.log("Now viewing all employees");
     console.log(res);
     startTask();
   });
 };
 
-// function to view all employees in a department
+// function to view all employees by department
 const ViewAllEmployeesByDepartment = () => {
   const query =
     "select " +
@@ -146,9 +146,27 @@ const ViewAllEmployeesByDepartment = () => {
     "left outer join employee as manager on employee.manager_id = manager.id " +
     "inner join `role` as role on employee.role_id = role.id " +
     "inner join department as department on role.department_id = department.id " +
-    "order by `department`, employee.last_name, employee.first_name ";
+    "order by `department`, employee.first_name, employee.last_name ";
   dotenvConnection.query(query, (err, res) => {
     if (err) throw err;
+    console.log("Now viewing all employees by department");
+    console.log(res);
+    startTask();
+  });
+};
+
+// function to view all employees by manager
+const ViewAllEmployeesByManager = () => {
+  const query =
+    "select concat(manager.first_name, ' ', manager.last_name) as manager, " +
+    "employee.first_name, employee.last_name, role.title as `role`, role.salary, " +
+    "department.name as `department` from employee as employee " +
+    "left outer join employee as manager on employee.manager_id = manager.id " +
+    "inner join `role` as role on employee.role_id = role.id " +
+    "inner join department as department on role.department_id = department.id order by manager";
+  dotenvConnection.query(query, (err, res) => {
+    if (err) throw err;
+    console.log("Now viewing all employees by manager");
     console.log(res);
     startTask();
   });
