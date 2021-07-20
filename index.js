@@ -350,3 +350,62 @@ const UpdateEmployeeRoleP2 = (employeeId) => {
       });
   });
 };
+
+// function to update an employee manager
+const UpdateEmployeeManager = () => {
+  const query =
+    "select id, concat(`first_name`, ' ' , `last_name`) as fullName from employee";
+  dotenvConnection.query(query, (err, res) => {
+    if (err) throw err;
+    inquirer
+      .prompt([
+        {
+          name: "employee",
+          type: "rawlist",
+          message: `Which employee would you like to update? : `,
+          choices: res.map((employee) => employee.fullName),
+        },
+      ])
+      .then((answer) => {
+        const employeeIdHolder = res.findIndex(
+          (employee) => employee.fullName === answer.employee
+        );
+        if (employeeIdHolder < 0)
+          throw new Error("No employees matched your input");
+        const employeeId = res[employeeIdHolder].id;
+        UpdateEmployeeManagerP2(employeeId);
+      });
+  });
+};
+
+const UpdateEmployeeManagerP2 = (employeeId) => {
+  let query =
+    "select id, concat(`first_name`, ' ', `last_name`) as fullName from employee ";
+  dotenvConnection.query(query, (err, res) => {
+    if (err) throw err;
+    res.unshift({ id: null, fullName: "none" });
+    inquirer
+      .prompt([
+        {
+          name: "manager",
+          type: "rawlist",
+          message: `Who is the employees new manager? : `,
+          choices: res.map((manager) => manager.fullName),
+        },
+      ])
+      .then((answer) => {
+        const managerIdHolder = res.findIndex(
+          (manager) => manager.fullName === answer.manager
+        );
+        if (managerIdHolder < 0)
+          throw new Error(" No managers matched your input");
+        const managerId = res[managerIdHolder].id;
+        query = `update employee set manager_id = ${managerId} where id = ${employeeId}`;
+        dotenvConnection.query(query, (err) => {
+          if (err) throw err;
+          console.log("employee manager successfully updated");
+          startTask();
+        });
+      });
+  });
+};
