@@ -2,9 +2,6 @@ const inquirer = require("inquirer");
 const mysql = require("mysql");
 require("dotenv").config();
 
-let roleArray = [];
-let departmentArray = [];
-
 const dotenvConnection = mysql.createConnection({
   host: "localhost",
   port: 3306,
@@ -198,8 +195,6 @@ const AddEmployee = () => {
         const roleId = res.findIndex(
           (role) => role.title === answer.employeeRole
         );
-        if (roleId < 0)
-          throw new Error(`No roles matched: "${answer.employeeRole}"`);
         const employeeRoleId = res[roleId].id;
         AddEmployeeP2(
           answer.employeeFirstName,
@@ -229,8 +224,6 @@ const AddEmployeeP2 = (employeeFirstName, employeeLastName, employeeRoleId) => {
         const roleId = managers.findIndex(
           (manager) => manager.fullName === answer.manager
         );
-        if (roleId < 0)
-          throw new Error(`no managers matched: "${answer.manager}"`);
         const managerId = managers[roleId].id;
         query =
           `insert into employee (first_name, last_name, role_id, manager_id) ` +
@@ -263,7 +256,6 @@ const RemoveEmployee = () => {
         const empId = res.findIndex(
           (employee) => employee.fullName === choice.employee
         );
-        if (empId < 0) throw new Error(`no employees found matching the input`);
         const employeeId = res[empId].id;
         const employeeFullName = res[empId].fullName;
         RemoveEmployeeP2(employeeId, employeeFullName);
@@ -313,8 +305,6 @@ const UpdateEmployeeRole = () => {
         const employeeIdHolder = res.findIndex(
           (employee) => employee.fullName === answer.employee
         );
-        if (employeeIdHolder < 0)
-          throw new Error("No employees matched your input");
         const employeeId = res[employeeIdHolder].id;
         UpdateEmployeeRoleP2(employeeId);
       });
@@ -338,8 +328,6 @@ const UpdateEmployeeRoleP2 = (employeeId) => {
         const employeeRoleHolder = res.findIndex(
           (role) => role.title === answer.role
         );
-        if (employeeRoleHolder < 0)
-          throw new Error(" No roles matched your input");
         const roleId = res[employeeRoleHolder].id;
         query = `update employee set role_id = ${roleId} where id = ${employeeId}`;
         dotenvConnection.query(query, (err) => {
@@ -370,8 +358,6 @@ const UpdateEmployeeManager = () => {
         const employeeIdHolder = res.findIndex(
           (employee) => employee.fullName === answer.employee
         );
-        if (employeeIdHolder < 0)
-          throw new Error("No employees matched your input");
         const employeeId = res[employeeIdHolder].id;
         UpdateEmployeeManagerP2(employeeId);
       });
@@ -397,8 +383,6 @@ const UpdateEmployeeManagerP2 = (employeeId) => {
         const managerIdHolder = res.findIndex(
           (manager) => manager.fullName === answer.manager
         );
-        if (managerIdHolder < 0)
-          throw new Error(" No managers matched your input");
         const managerId = res[managerIdHolder].id;
         query = `update employee set manager_id = ${managerId} where id = ${employeeId}`;
         dotenvConnection.query(query, (err) => {
@@ -418,5 +402,43 @@ const ViewAllRoles = () => {
     if (err) throw err;
     console.log(res);
     startTask();
+  });
+};
+
+const AddRole = () => {
+  let query = `select id, name from department`;
+  dotenvConnection.query(query, (err, res) => {
+    if (err) throw err;
+    inquirer
+      .prompt([
+        {
+          name: "newTitle",
+          type: "input",
+          message: `What is the title for the new role? `,
+        },
+        {
+          name: "newSalary",
+          type: "input",
+          message: `What is the salary for the new role? `,
+        },
+        {
+          name: "newDepartment",
+          type: "rawlist",
+          message: `What is the department for the new role? `,
+          choices: res.map((department) => department.name),
+        },
+      ])
+      .then((answer) => {
+        const departmentIdHolder = res.findIndex(
+          (department) => department.name === answer.newDepartment
+        );
+        const departmentId = res[departmentIdHolder].id;
+        query = `insert into \`role\` (title, salary, department_id) values ("${answer.newTitle}", ${answer.newSalary}, ${departmentId})`;
+        dotenvConnection.query(query, (err) => {
+          if (err) throw err;
+          console.log("New role successfully added");
+          startTask();
+        });
+      });
   });
 };
