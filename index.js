@@ -516,3 +516,46 @@ const AddDepartment = () => {
       });
     });
 };
+
+const RemoveDepartment = () => {
+  const query = "select id, name from department";
+  dotenvConnection.query(query, (err, res) => {
+    if (err) throw err;
+    inquirer
+      .prompt([
+        {
+          name: "department",
+          type: "rawlist",
+          message: `What role do you want to remove? : `,
+          choices: res.map((department) => department.name),
+        },
+      ])
+      .then((answer) => {
+        const departmentInfo = res.findIndex(
+          (department) => department.name === answer.department
+        );
+        const departmentId = res[departmentInfo].id;
+        RemoveDepartmentP2(departmentId);
+      });
+  });
+};
+
+const RemoveDepartmentP2 = (departmentId) => {
+  let query = `select title from \`role\` where \`role\`.department_id = ${departmentId}`;
+  dotenvConnection.query(query, (err, res) => {
+    if (err) throw err;
+    if (res.length > 0) {
+      console.log(
+        "Cant remove this department because the following roles have this department: "
+      );
+      console.log(res);
+    } else {
+      query = `delete from department where id = ${departmentId}`;
+      dotenvConnection.query(query, (err) => {
+        if (err) throw err;
+      });
+    }
+    console.log("Successfully deleted the department");
+    startTask();
+  });
+};
