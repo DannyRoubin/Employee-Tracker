@@ -497,3 +497,22 @@ const ViewAllDepartments = () => {
     startTask();
   });
 };
+
+const AddDepartment = () => {
+  inquirer
+    .prompt([
+      {
+        name: "newDepartment",
+        type: "input",
+        message: `What department would you like to add? `,
+      },
+    ])
+    .then((answer) => {
+      const query = `insert into department (name) value ("${answer.newDepartment}")`;
+      dotenvConnection.query(query, (err) => {
+        if (err) throw err;
+        console.log("New department added");
+        startTask();
+      });
+    });
+};
