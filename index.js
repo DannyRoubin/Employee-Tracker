@@ -2,6 +2,7 @@ const inquirer = require("inquirer");
 const mysql = require("mysql");
 require("dotenv").config();
 
+// running the mysql connection with info from my .env file
 const dotenvConnection = mysql.createConnection({
   host: "localhost",
   port: 3306,
@@ -10,11 +11,13 @@ const dotenvConnection = mysql.createConnection({
   database: process.env.DB_NAME,
 });
 
+// upon connection, run start task
 dotenvConnection.connect((err) => {
   if (err) throw err;
   startTask();
 });
 
+// lists inquirer options
 const startTask = () => {
   inquirer
     .prompt({
@@ -35,10 +38,10 @@ const startTask = () => {
         "View All Departments",
         "Add Department",
         "Remove Department",
-        "View Total Budget By Department",
         "Exit",
       ],
     })
+    // awaits user answer and runs a function based off user choice
     .then((answer) => {
       switch (answer.action) {
         case "View All Employees":
@@ -93,10 +96,6 @@ const startTask = () => {
           RemoveDepartment();
           break;
 
-        case "View Total Budget By Department":
-          ViewTotalBudgetByDepartment();
-          break;
-
         case "Exit":
           dotenvConnection.end();
           break;
@@ -110,6 +109,7 @@ const startTask = () => {
 
 // function to view all of the employees
 const ViewAllEmployees = () => {
+  // mysql query
   const query =
     "select " +
     "employee.first_name, " +
@@ -120,13 +120,13 @@ const ViewAllEmployees = () => {
     "concat(manager.first_name, ' ', manager.last_name) as manager " +
     "from employee as employee " +
     "left outer join employee as manager on employee.manager_id = manager.id " +
-    "inner join `role` AS role on employee.role_id = role.id " +
+    "inner join `role` as role on employee.role_id = role.id " +
     "inner join department as department on role.department_id = department.id " +
     "order by employee.first_name, employee.last_name;";
   dotenvConnection.query(query, (err, res) => {
     if (err) throw err;
     console.log("Now viewing all employees");
-    console.log(res);
+    console.table(res);
     startTask();
   });
 };
@@ -145,7 +145,7 @@ const ViewAllEmployeesByDepartment = () => {
   dotenvConnection.query(query, (err, res) => {
     if (err) throw err;
     console.log("Now viewing all employees by department");
-    console.log(res);
+    console.table(res);
     startTask();
   });
 };
@@ -162,7 +162,7 @@ const ViewAllEmployeesByManager = () => {
   dotenvConnection.query(query, (err, res) => {
     if (err) throw err;
     console.log("Now viewing all employees by manager");
-    console.log(res);
+    console.table(res);
     startTask();
   });
 };
@@ -205,6 +205,7 @@ const AddEmployee = () => {
   });
 };
 
+// helper function for adding an employee
 const AddEmployeeP2 = (employeeFirstName, employeeLastName, employeeRoleId) => {
   let query =
     "select id, concat(`first_name`, ' ' , `last_name`) as fullName from employee;";
@@ -263,6 +264,7 @@ const RemoveEmployee = () => {
   });
 };
 
+// helper function to remove an employee
 const RemoveEmployeeP2 = (employeeId, employeeFullName) => {
   let query =
     "select concat(`first_name`, ' ', `last_name`) as fullName " +
@@ -274,7 +276,7 @@ const RemoveEmployeeP2 = (employeeId, employeeFullName) => {
       console.log(
         `cannot remove "${employeeFullName}" because they are the manager of the following employees: `
       );
-      console.log(res);
+      console.table(res);
     } else {
       query = `delete from employee where id = ${employeeId}`;
       dotenvConnection.query(query, (err) => {
@@ -311,6 +313,7 @@ const UpdateEmployeeRole = () => {
   });
 };
 
+// helper function to update an employee role
 const UpdateEmployeeRoleP2 = (employeeId) => {
   let query = "select id, title from `role` ";
   dotenvConnection.query(query, (err, res) => {
@@ -364,6 +367,7 @@ const UpdateEmployeeManager = () => {
   });
 };
 
+// helper function to update an employee manager
 const UpdateEmployeeManagerP2 = (employeeId) => {
   let query =
     "select id, concat(`first_name`, ' ', `last_name`) as fullName from employee ";
@@ -394,17 +398,19 @@ const UpdateEmployeeManagerP2 = (employeeId) => {
   });
 };
 
+// function to view all roles
 const ViewAllRoles = () => {
   const query =
     "select title, salary, department_id from `role` " +
     "inner join department on role.department_id = department.id order by `title` ";
   dotenvConnection.query(query, (err, res) => {
     if (err) throw err;
-    console.log(res);
+    console.table(res);
     startTask();
   });
 };
 
+// function to add a new role
 const AddRole = () => {
   let query = `select id, name from department`;
   dotenvConnection.query(query, (err, res) => {
@@ -443,6 +449,7 @@ const AddRole = () => {
   });
 };
 
+// function to remove a role
 const RemoveRole = () => {
   const query = "select id, title from role";
   dotenvConnection.query(query, (err, res) => {
@@ -466,6 +473,7 @@ const RemoveRole = () => {
   });
 };
 
+// helper function to remove a role
 const RemoveRoleP2 = (roleId) => {
   let query =
     "select concat (`first_name`, ' ', `last_name`) as fullName from employee " +
@@ -477,7 +485,7 @@ const RemoveRoleP2 = (roleId) => {
       console.log(
         "You cannot remove this role because the following employees are still assigned to it:"
       );
-      console.log(res);
+      console.table(res);
     } else {
       query = `delete from \`role\` where id = ${roleId}`;
       dotenvConnection.query(query, (err) => {
@@ -489,15 +497,17 @@ const RemoveRoleP2 = (roleId) => {
   });
 };
 
+// function to view all departments
 const ViewAllDepartments = () => {
   const query = `select name from department order BY name`;
   dotenvConnection.query(query, (err, res) => {
     if (err) throw err;
-    console.log(res);
+    console.table(res);
     startTask();
   });
 };
 
+// function to add a new department
 const AddDepartment = () => {
   inquirer
     .prompt([
@@ -517,6 +527,7 @@ const AddDepartment = () => {
     });
 };
 
+// function to remove a department
 const RemoveDepartment = () => {
   const query = "select id, name from department";
   dotenvConnection.query(query, (err, res) => {
@@ -540,6 +551,7 @@ const RemoveDepartment = () => {
   });
 };
 
+// helper function to remove a department
 const RemoveDepartmentP2 = (departmentId) => {
   let query = `select title from \`role\` where \`role\`.department_id = ${departmentId}`;
   dotenvConnection.query(query, (err, res) => {
@@ -548,7 +560,7 @@ const RemoveDepartmentP2 = (departmentId) => {
       console.log(
         "Cant remove this department because the following roles have this department: "
       );
-      console.log(res);
+      console.table(res);
     } else {
       query = `delete from department where id = ${departmentId}`;
       dotenvConnection.query(query, (err) => {
